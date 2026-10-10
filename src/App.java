@@ -44,12 +44,32 @@ public class App {
         jornada.add(envio4);
 
         // ── Parte 4: iniciar envíos y observar cómo cambian los paquetes ──
+        //
+        // CORRECCIÓN: ahora cada etapa del ciclo tiene su propio paso.
+        // iniciar() deja los paquetes SOLO en EN_PREPARACION. Antes llamaba
+        // también a salirADistribucion() dentro del mismo método, con lo que
+        // EN_PREPARACION nunca se llegaba a observar.
         System.out.println("\n-- Iniciando envíos --");
         for (Envio e : jornada) {
             e.iniciar();
         }
 
-        System.out.println("\n-- Estado de paquetes tras iniciar envíos --");
+        System.out.println("\n-- Estado de paquetes tras iniciar (EN_PREPARACION) --");
+        System.out.println(p1);
+        System.out.println(p2);
+        System.out.println(p6);
+        System.out.println(p3);
+        System.out.println(p4);
+        System.out.println(p5);
+
+        // ── Parte 4: etapa intermedia — los envíos salen a distribución ──
+        // Esta llamada es la que faltaba; sin ella, finalizar() lanza excepción.
+        System.out.println("\n-- Saliendo a distribución --");
+        for (Envio e : jornada) {
+            e.salirADistribucion();
+        }
+
+        System.out.println("\n-- Estado de paquetes tras salir a distribución (EN_DISTRIBUCION) --");
         System.out.println(p1);
         System.out.println(p2);
         System.out.println(p6);
@@ -63,7 +83,7 @@ public class App {
             e.finalizar();
         }
 
-        System.out.println("\n-- Estado final de paquetes --");
+        System.out.println("\n-- Estado final de paquetes (ENTREGADO) --");
         System.out.println(p1);
         System.out.println(p6); 
         System.out.println(p3);
@@ -92,6 +112,17 @@ public class App {
         envioLleno.agregarPaquete(new Paquete("C", 1.0));
         try {
             envioLleno.agregarPaquete(new Paquete("D", 1.0)); // debe fallar
+        } catch (IllegalStateException e) {
+            System.out.println("Error esperado: " + e.getMessage());
+        }
+
+        // ── Demostración de ciclo de vida incompleto ──
+        System.out.println("\n-- Prueba de ciclo incompleto (finalizar sin distribuir) --");
+        EnvioExpress envioCorto = new EnvioExpress("Córdoba");
+        envioCorto.agregarPaquete(new Paquete("E", 1.0));
+        envioCorto.iniciar();   // queda en EN_PREPARACION
+        try {
+            envioCorto.finalizar(); // debe fallar: nunca salió a distribución
         } catch (IllegalStateException e) {
             System.out.println("Error esperado: " + e.getMessage());
         }
